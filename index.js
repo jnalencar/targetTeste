@@ -1,6 +1,9 @@
 const express = require('express');
 const server = express();
+const cors = require('cors');
+
 server.use(express.json());
+server.use(cors());
 
 const tarefas = [
     { id: 1, titulo: 'Estudar Node.js', descricao: 'Aprender sobre o runtime Node.js', status: 'pendente', dataCriacao: new Date() },
@@ -35,6 +38,18 @@ server.put('/tarefa/:index', (req, res) => {
     tarefa.id = id;
     tarefa.titulo = titulo;
     tarefa.descricao = descricao;
+    tarefa.status = status;
+    return res.json(tarefa);
+});
+
+// Atualiza o status de uma tarefa
+server.put('/tarefa/:index/status', (req, res) => {
+    const { index } = req.params;
+    const { status } = req.body;
+    const tarefa = tarefas[index];
+    if (!tarefa) {
+        return res.status(404).json({ error: 'Tarefa não encontrada' });
+    }
     tarefa.status = status;
     return res.json(tarefa);
 });

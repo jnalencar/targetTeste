@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRUD de Tarefas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .task-list {
+            margin-top: 20px;
+        }
+
+        .task-item {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>CRUD de Tarefas</h1>
+        <form id="addTaskForm">
+            <h2>Adicionar Tarefa</h2>
+            <input type="text" id="titulo" placeholder="Título" required>
+            <input type="text" id="descricao" placeholder="Descrição" required>
+            <button type="submit">Adicionar</button>
+        </form>
+
+        <form id="updateTaskForm">
+            <h2>Atualizar Tarefa</h2>
+            <input type="number" id="updateIndex" placeholder="Índice" required>
+            <input type="text" id="updateTitulo" placeholder="Novo Título" required>
+            <input type="text" id="updateDescricao" placeholder="Nova Descrição" required>
+            <input type="text" id="updateStatus" placeholder="Novo Status" required>
+            <button type="submit">Atualizar</button>
+        </form>
+
+        <form id="deleteTaskForm">
+            <h2>Remover Tarefa</h2>
+            <input type="number" id="deleteIndex" placeholder="Índice" required>
+            <button type="submit">Remover</button>
+        </form>
+
+        <h2>Lista de Tarefas</h2>
+        <div id="taskList" class="task-list"></div>
+    </div>
+
+    <script>
+        const apiUrl = 'http://localhost:3000/tarefa';
+
+        document.getElementById('addTaskForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const titulo = document.getElementById('titulo').value;
+            const descricao = document.getElementById('descricao').value;
+
+            try {
+                const response = await fetch(apiUrl);
+                const tasks = await response.json();
+                const maxId = tasks.reduce((max, task) => task.id > max ? task.id : max, 0);
+                const newId = maxId + 1;
+
+                const addResponse = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ id: newId, titulo, descricao, status: 'pendente' })
+                });
+
+                if (addResponse.ok) {
+                    alert('Tarefa adicionada com sucesso!');
+                    loadTasks();
+                } else {
+                    alert('Erro ao adicionar tarefa.');
+                }
+            } catch (error) {
+                console.error('Erro ao fazer a requisição:', error);
+                alert('Erro ao fazer a requisição.');
+            }
+        });
+
+        document.getElementById('updateTaskForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const index = document.getElementById('updateIndex').value;
+            const titulo = document.getElementById('updateTitulo').value;
+            const descricao = document.getElementById('updateDescricao').value;
+            const status = document.getElementById('updateStatus').value;
+
+            try {
+                const response = await fetch(`${apiUrl}/${index}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ id: index, titulo, descricao, status })
+                });
+
+                if (response.ok) {
+                    alert('Tarefa atualizada com sucesso!');
+                    loadTasks();
+                } else {
+                    alert('Erro ao atualizar tarefa.');
+                }
+            } catch (error) {
+                console.error('Erro ao fazer a requisição:', error);
+                alert('Erro ao fazer a requisição.');
+            }
+        });
+
+        document.getElementById('deleteTaskForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const index = document.getElementById('deleteIndex').value;
+
+            try {
+                const response = await fetch(`${apiUrl}/${index}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    alert('Tarefa removida com sucesso!');
+                    loadTasks();
+                } else {
+                    alert('Erro ao remover tarefa.');
+                }
+            } catch (error) {
+                console.error('Erro ao fazer a requisição:', error);
+                alert('Erro ao fazer a requisição.');
+            }
+        });
+
+        async function toggleTaskStatus(index, currentStatus) {
+            const newStatus = currentStatus === 'pendente' ? 'concluido' : 'pendente';
+            try {
+                const response = await fetch(`${apiUrl}/${index}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                });
+
+                if (response.ok) {
+                    const updatedTask = await response.json();
+                    location.reload();
+                    console.log('Status atualizado com sucesso:', updatedTask);
+                } else {
+                    console.error('Erro ao atualizar status:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar status:', error);
+            }
+        }
+
+        async function loadTasks() {
+            try {
+                const response = await fetch(apiUrl);
+                if (!response.ok) {
+                    throw new Error(`Erro ao carregar tarefas: ${response.statusText}`);
+                }
+                const tasks = await response.json();
+                const taskList = document.getElementById('taskList');
+                taskList.innerHTML = '';
+
+                tasks.forEach((task, index) => {
+                    const taskItem = document.createElement('div');
+                    taskItem.className = 'task-item';
+                    taskItem.innerHTML = `
+                        <strong>${index}: ${task.titulo}</strong>
+                        <p>${task.descricao}</p>
+                        <p>Status: ${task.status}</p>
+                        <p>Data de Criação: ${new Date(task.dataCriacao).toLocaleString()}</p>
+                        <button onclick="toggleTaskStatus(${index}, '${task.status}')">Alterar Status</button>
+                    `;
+                    taskList.appendChild(taskItem);
+                });
+            } catch (error) {
+                console.error('Erro ao carregar tarefas:', error);
+                alert('Erro ao carregar tarefas.');
+            }
+        }
+
+        loadTasks();
+    </script>
+</body>
+
+</html>
