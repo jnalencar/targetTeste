@@ -1,65 +1,132 @@
 const express = require('express');
-const server = express();
+const mongoose = require('mongoose');
 const cors = require('cors');
-
+const server = express();
 server.use(express.json());
 server.use(cors());
 
-const tarefas = [
-    { id: 1, titulo: 'Estudar Node.js', descricao: 'Aprender sobre o runtime Node.js', status: 'pendente', dataCriacao: new Date() },
-    { id: 2, titulo: 'Estudar React', descricao: 'Aprender sobre a biblioteca React', status: 'pendente', dataCriacao: new Date() },
-    { id: 3, titulo: 'Estudar React Native', descricao: 'Aprender sobre o framework React Native', status: 'pendente', dataCriacao: new Date() }
-];
+// Conexão com o banco de dados
+mongoose.connect('mongodb://localhost:27017/tarefas', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+});
+
+// Model de tarefas
+const tarefaSchema = new mongoose.Schema({
+    cod: {type: Number, unique:true},
+    titulo: String,
+    descricao: String,
+    status: String,
+    dataCriacao: { type: Date, default: Date.now }
+});
+
+const Tarefa = mongoose.model('Tarefa', tarefaSchema);
+
+// Model de contadores
+const counterSchema = new mongoose.Schema({
+    _id: String,
+    seq: { type: Number, default: 0 }
+});
+
+const Counter = mongoose.model('Counter', counterSchema);
+
+// Função para obter o próximo valor da sequência
+async function getNextSequenceValue(sequenceName) {
+    const sequenceDocument = await Counter.findByIdAndUpdate(
+        sequenceName,
+        { $inc: { seq: 1 } },
+        { new: true, upsert: true }
+    );
+    return sequenceDocument.seq;
+}
 
 // Retorna uma tarefa
-server.get('/tarefa/:index', (req, res) => {
-    const { index } = req.params;
-    return res.json(tarefas[index]);
+server.get('/tarefa/:cod', async (req, res) => {
+    try {
+        const tarefa = await Tarefa.findOne({ cod: req.params.cod });
+        if (!tarefa) {
+            return res.status(404).json({ error: 'Tarefa não encontrada' });
+        }
+        return res.json(tarefa);
+    } catch (err) {
+        return res.status(400).json({ error: 'Erro ao buscar tarefa' });
+    }
 });
 
 // Retorna todas as tarefas
-server.get('/tarefa', (req, res) => {
-    return res.json(tarefas);
+server.get('/tarefa', async (req, res) => {
+    try {
+        const tarefas = await Tarefa.find();
+        return res.json(tarefas);
+    } catch (err) {
+        return res.status(400).json({ error: 'Erro ao buscar tarefas' });
+    }
 });
 
 // Adiciona uma tarefa
-server.post('/tarefa', (req, res) => {
-    const { id, titulo, descricao, status } = req.body;
-    const novaTarefa = { id, titulo, descricao, status, dataCriacao: new Date() };
-    tarefas.push(novaTarefa);
-    return res.json(novaTarefa);
+server.post('/tarefa', async (req, res) => {
+    const { titulo, descricao, status } = req.body;
+    const cod = await getNextSequenceValue('tarefaId');
+    const novaTarefa = new Tarefa({ cod, titulo, descricao, status });
+    try {
+        await novaTarefa.save();
+        return res.json(novaTarefa);
+    } catch (err) {
+        return res.status(400).json({ error: 'Erro ao adicionar tarefa' });
+    }
 });
 
 // Atualiza uma tarefa
-server.put('/tarefa/:index', (req, res) => {
-    const { index } = req.params;
-    const { id, titulo, descricao, status } = req.body;
-    const tarefa = tarefas[index];
-    tarefa.id = id;
-    tarefa.titulo = titulo;
-    tarefa.descricao = descricao;
-    tarefa.status = status;
-    return res.json(tarefa);
+server.put('/tarefa/:cod', async (req, res) => {
+    const { cod } = req.params;
+    const { titulo, descricao, status } = req.body;
+    try {
+        const tarefa = await Tarefa.findOne({ cod });
+        if (!tarefa) {
+            return res.status(404).json({ error: 'Tarefa não encontrada' });
+        }
+        tarefa.titulo = titulo;
+        tarefa.descricao = descricao;
+        tarefa.status = status;
+        await tarefa.save();
+        return res.json(tarefa);
+    } catch (err) {
+        return res.status(400).json({ error: 'Erro ao atualizar tarefa' });
+    }
 });
 
 // Atualiza o status de uma tarefa
-server.put('/tarefa/:index/status', (req, res) => {
-    const { index } = req.params;
+server.put('/tarefa/:cod/status', async (req, res) => {
+    const { cod } = req.params;
     const { status } = req.body;
-    const tarefa = tarefas[index];
-    if (!tarefa) {
-        return res.status(404).json({ error: 'Tarefa não encontrada' });
+    try {
+        const tarefa = await Tarefa.findOne({ cod });
+        if (!tarefa) {
+            return res.status(404).json({ error: 'Tarefa não encontrada' });
+        }
+        tarefa.status = status;
+        await tarefa.save();
+        return res.json(tarefa);
+    } catch (err) {
+        return res.status(400).json({ error: 'Erro ao atualizar status da tarefa' });
     }
-    tarefa.status = status;
-    return res.json(tarefa);
 });
 
 // Remove uma tarefa
-server.delete('/tarefa/:index', (req, res) => {
-    const { index } = req.params;
-    tarefas.splice(index, 1);
-    return res.send();
+server.delete('/tarefa/:cod', async (req, res) => {
+    console.log("entrou");
+    const { cod } = req.params;
+    try {
+        const tarefa = await Tarefa.findOneAndDelete({ cod });
+        if (!tarefa) {
+            return res.status(404).json({ error: 'Tarefa não encontrada' });
+        }
+        return res.send();
+    } catch (err) {
+        return res.status(400).json({ error: 'Erro ao deletar tarefa' });
+    }
 });
+
 
 server.listen(3000, () => {
     console.log('Servidor rodando na porta 3000');
