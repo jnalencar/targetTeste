@@ -1,4 +1,26 @@
 node_modules/
 package-lock.json
 
+/seu-projeto
+├── src
+│   ├── domain
+│   │   ├── models
+│   │   │   ├── Tarefa.js
+│   │   │   └── Counter.js
+│   ├── application
+│   │   └── services
+│   │       └── tarefaService.js
+│   ├── infrastructure
+│   │   ├── database
+│   │   │   └── mongoose.js
+│   └── interfaces
+│       ├── controllers
+│       │   └── tarefaController.js
+│       └── routes
+│           └── tarefaRoutes.js
+├── index.js
+├── Dockerfile
+├── docker-compose.yaml
+├── package.json
+└── package-lock.json
 
