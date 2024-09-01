@@ -6,11 +6,16 @@ server.use(express.json());
 server.use(cors());
 
 // Conexão com o banco de dados
-mongoose.connect('mongodb://localhost:27017/tarefas', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-});
+const mongoURL = 'mongodb://mongodb:27017/tarefas?authSource=admin';
 
+mongoose.connect(mongoURL, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+}).then(() => {
+  console.log('Connected to MongoDB');
+}).catch((err) => {
+  console.error('Error connecting to MongoDB', err);
+});
 // Model de tarefas
 const tarefaSchema = new mongoose.Schema({
     cod: {type: Number, unique:true},
