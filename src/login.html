@@ -124,7 +124,7 @@
                 const data = await response.json();
                 if (response.ok) {
                     localStorage.setItem('token', data.token);
-                    window.location.href = '/src/crudtarefas.html';
+                    window.location.href = '/src/landing.html';
                 } else {
                     document.getElementById('login-error').textContent = data.error;
                 }

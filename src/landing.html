@@ -4,15 +4,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CRUD de Tarefas</title>
+    <title>Tarefas</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             display: flex;
-            flex-direction: column;
+            justify-content: center;
             align-items: center;
+            min-height: 100vh;
             background-color: #f0f0f0;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .container {
+            background-color: #fff;
             padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            min-width: 40%;
+        }
+
+        .container button {
+            width: 40%;
+            padding: 10px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .task-list {
+            margin-top: 20px;
+        }
+
+        .task-item {
+            border: 2px solid #007bff; /* Define a cor e a espessura da borda */
+            border-radius: 4px; /* Define as pontas arredondadas */
+            padding: 10px;
+            margin-bottom: 10px;
         }
 
         .menu {
@@ -35,11 +69,12 @@
 
 <body>
     <div class="menu">
+        <a href="crudtarefas.html" onclick="return blockTarefaCRUDAccess()">CRUD de Tarefas</a>
         <a href="crudusers.html" onclick="return blockUserCRUDAccess()">CRUD de Usuários</a>
         <a href="changepw.html">Mudar senha</a>
     </div>
     <div class="container">
-        <h2>Lista de Tarefas</h2>
+        <h1>Lista de Tarefas</h1>
         <div id="taskList" class="task-list"></div>
     </div>
     <script>
@@ -93,6 +128,51 @@
                 }
             } catch (error) {
                 console.error('Erro ao atualizar status:', error);
+            }
+        }
+
+        function parseJwt(token) {
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                return JSON.parse(jsonPayload);
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function blockUserCRUDAccess() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Você não tem acesso a essa funcionalidade');
+                return false;
+            }
+
+            const decodedToken = parseJwt(token);
+            if (decodedToken && decodedToken.level === 3) {
+                return true;
+            } else {
+                alert('Você não tem acesso a essa funcionalidade');
+                return false;
+            }
+        }
+
+        function blockTarefaCRUDAccess() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Você não tem acesso a essa funcionalidade');
+                return false;
+            }
+
+            const decodedToken = parseJwt(token);
+            if (decodedToken && decodedToken.level >= 2) {
+                return true;
+            } else {
+                alert('Você não tem acesso a essa funcionalidade');
+                return false;
             }
         }
 

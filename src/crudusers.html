@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,52 +9,71 @@
         body {
             font-family: Arial, sans-serif;
             display: flex;
-            flex-direction: column;
+            justify-content: center;
             align-items: center;
+            height: 100vh;
             background-color: #f0f0f0;
-            padding: 20px;
         }
+
+        h1 {
+            text-align: center;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            min-width: 40%;
+        }
+
         table {
             width: 80%;
             border-collapse: collapse;
             margin-bottom: 20px;
+            border-radius: 10px;
+            align-content: center;
         }
-        table, th, td {
-            border: 1px solid #ddd;
-        }
-        th, td {
-            padding: 8px;
-            text-align: left;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-        }
-        .form-group input, .form-group select {
+
+        table,
+        th,
+        td {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
             width: 100%;
-            padding: 8px;
-            box-sizing: border-box;
+            table-layout: fixed;
         }
-        .form-group button {
-            padding: 10px 20px;
+
+        th,
+        td {
+            border: 2px solid #007bff;
+            padding: 10px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        td button{
+            padding: 10px;
             background-color: #007bff;
             color: #fff;
             border: none;
             border-radius: 4px;
             cursor: pointer;
         }
-        .form-group button:hover {
-            background-color: #0056b3;
+
+        th {
+            background-color: #f2f2f2;
         }
-        .error {
-            color: red;
+
+        .dropdown {
             margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .delete-button {
@@ -66,23 +86,50 @@
             width: 24px;
             height: 24px;
         }
+
+        .menu {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        .menu a {
+            margin-left: 10px;
+            text-decoration: none;
+            color: #007bff;
+        }
+
+        .menu a:hover {
+            text-decoration: underline;
+        }
+
     </style>
 </head>
+
 <body>
-    <h1>Gerenciamento de Usuários</h1>
-    <div id="error" class="error"></div>
-    <table>
-        <thead>
-            <tr>
-                <th>Username</th>
-                <th>Nível</th>
-                <th>Ações</th>
-            </tr>
-        </thead>
-        <tbody id="user-table-body">
-            <!-- Usuários serão listados aqui -->
-        </tbody>
-    </table>
+    <div class="menu">
+        <a href="landing.html">Tarefas</a>
+        <a href="crudtarefas.html" onclick="return blockTarefaCRUDAccess()">CRUD de Tarefas</a>
+        <a href="changepw.html">Mudar senha</a>
+    </div>
+    
+    <div class="container">
+        <h1>Gerenciamento de Usuários</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Nível</th>
+                    <th>Ações</th>
+                    <th>Deletar</th>
+                </tr>
+            </thead>
+            <tbody id="user-table-body">
+                <!-- Usuários serão listados aqui -->
+            </tbody>
+        </table>
+    </div>
+    
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             const token = localStorage.getItem('token');
@@ -107,7 +154,7 @@
                     row.innerHTML = `
                         <td>${user.username}</td>
                         <td>
-                            <select data-user-id="${user._id}">
+                            <select class="dropdown" data-user-id="${user._id}">
                                 <option value="1" ${user.level === 1 ? 'selected' : ''}>1</option>
                                 <option value="2" ${user.level === 2 ? 'selected' : ''}>2</option>
                                 <option value="3" ${user.level === 3 ? 'selected' : ''}>3</option>
@@ -172,4 +219,5 @@
         }
     </script>
 </body>
+
 </html>

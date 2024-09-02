@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mudar Senha</title>
+    <title>Alterar Senha</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -25,7 +25,7 @@
         }
 
         h1 {
-            margin-bottom: 20px;
+            text-align: center;
         }
 
         input[type="password"] {
@@ -36,7 +36,27 @@
             border-radius: 4px;
         }
 
-        button {
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        form label {
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        form input,
+        form textarea {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        form button {
             width: 100%;
             padding: 10px;
             background-color: #007bff;
@@ -59,16 +79,37 @@
             color: green;
             margin-top: 10px;
         }
+
+        .menu {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        .menu a {
+            margin-left: 10px;
+            text-decoration: none;
+            color: #007bff;
+        }
+
+        .menu a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 
 <body>
+    <div class="menu">
+        <a href="landing.html">Tarefas</a>
+        <a href="crudtarefas.html" onclick="return blockTarefaCRUDAccess()">CRUD de Tarefas</a>
+        <a href="crudusers.html" onclick="return blockUserCRUDAccess()">CRUD de Usuários</a>
+    </div>
     <div class="container">
-        <h1>Mudar Senha</h1>
+        <h1>Alterar Senha</h1>
         <form id="changePasswordForm">
             <input type="password" id="newPassword" placeholder="Nova Senha" required>
             <input type="password" id="confirmPassword" placeholder="Confirmar Senha" required>
-            <button type="submit">Mudar Senha</button>
+            <button type="submit">Alterar Senha</button>
         </form>
         <div id="message" class="error"></div>
     </div>
@@ -97,7 +138,7 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error('Erro ao mudar senha');
+                    throw new Error('Erro ao alterar senha');
                 }
 
                 messageDiv.textContent = 'Senha alterada com sucesso';
