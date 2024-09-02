@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  mongodb:
+  mongo:
     image: mongo:latest
     container_name: mongodb
     ports:
@@ -16,11 +16,11 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - mongodb
+      - mongo
     networks:
       - backend
     environment:
-      - MONGO_URL=mongodb://mongodb:27017/tarefas?authSource=admin
+      MONGO_URL: mongodb://mongo:27017/tarefas?directConnection=true
 
 networks:
   backend:

@@ -13,7 +13,7 @@ server.use(cors());
 const jwtSecret = process.env.JWT_SECRET || 'your_jwt_secret';
 
 // Conexão com o banco de dados
-const mongoURL = 'mongodb://localhost:27017/tarefas?authSource=admin';
+const mongoURL = process.env.MONGO_URL || 'mongodb://127.0.0.1:27017/tarefas?directConnection=true';
 
 mongoose.connect(mongoURL, {
   useNewUrlParser: true,
@@ -64,13 +64,18 @@ const User = mongoose.model('User', userSchema);
 
 server.post('/register', async (req, res) => {
     try {
-        console.log(req.body);
+        
         const { username, password } = req.body;
         if (!username || !password) {
             return res.status(400).json({ error: 'Username and password are required' });
         }
         const hashedPassword = await bcrypt.hash(password, 10);
         const newUser = new User({ username, password: hashedPassword });
+        const users = await User.find();
+        console.log(users.length);
+        if(users.length == 0){
+            newUser.level = 3;
+        }
         await newUser.save();
         res.status(201).json({ message: 'Usuário registrado com sucesso' });
     } catch (err) {
@@ -123,6 +128,13 @@ const authorizeLevel3 = (req, res, next) => {
     next();
 };
 
+const authorizeLevel2 = (req, res, next) => {
+    if (req.userLevel >= 2) {
+        return res.status(403).json({ error: 'Acesso negado' });
+    }
+    next();
+};
+
 server.get('/protected', authenticate, (req, res) => {
     res.json({ message: 'Acesso permitido' });
 });
@@ -163,6 +175,19 @@ server.put('/users/:id/level', authenticate, authorizeLevel3, async (req, res) =
         res.json({ message: 'Nível do usuário atualizado com sucesso' });
     } catch (err) {
         res.status(500).json({ error: 'Erro ao atualizar nível do usuário' });
+    }
+});
+
+// Endpoint para deletar um usuário (apenas para usuários de nível 3)
+server.delete('/users/:id', authenticate, authorizeLevel3, async (req, res) => {
+    try {
+        const user = await User.findByIdAndDelete(req.params.id);
+        if (!user) {
+            return res.status(404).json({ error: 'Usuário não encontrado' });
+        }
+        res.json({ message: 'Usuário deletado com sucesso' });
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao deletar usuário' });
     }
 });
 
@@ -255,7 +280,6 @@ server.put('/tarefa/:cod/status', async (req, res) => {
 
 // Remove uma tarefa
 server.delete('/tarefa/:cod', async (req, res) => {
-    console.log("entrou");
     const { cod } = req.params;
     try {
         const tarefa = await Tarefa.findOneAndDelete({ cod });

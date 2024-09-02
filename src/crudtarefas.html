@@ -25,10 +25,31 @@
             padding: 10px;
             margin-bottom: 10px;
         }
+
+        .menu {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        .menu a {
+            margin-left: 10px;
+            text-decoration: none;
+            color: #007bff;
+        }
+
+        .menu a:hover {
+            text-decoration: underline;
+        }
+
     </style>
 </head>
 
 <body>
+    <div class="menu">
+        <a href="crudusers.html" onclick="return blockUserCRUDAccess()">CRUD de Usuários</a>
+        <a href="changepw.html">Mudar senha</a>
+    </div>
     <div class="container">
         <h1>CRUD de Tarefas</h1>
         <form id="addTaskForm">
@@ -188,6 +209,35 @@
             } catch (error) {
                 console.error('Erro ao carregar tarefas:', error);
                 alert('Erro ao carregar tarefas.');
+            }
+        }
+
+        function parseJwt(token) {
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                return JSON.parse(jsonPayload);
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function blockUserCRUDAccess() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Você não tem acesso a essa funcionalidade');
+                return false;
+            }
+
+            const decodedToken = parseJwt(token);
+            if (decodedToken && decodedToken.level === 3) {
+                return true;
+            } else {
+                alert('Você não tem acesso a essa funcionalidade');
+                return false;
             }
         }
 
