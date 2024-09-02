@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alterar Senha</title>
+    <link rel="stylesheet" href="../styles/changepw.css">
+</head>
+
+<body>
+    <div class="menu">
+        <a href="landing.html">Tarefas</a>
+        <a href="crudtarefas.html" onclick="return blockTarefaCRUDAccess()">CRUD de Tarefas</a>
+        <a href="crudusers.html" onclick="return blockUserCRUDAccess()">CRUD de Usuários</a>
+    </div>
+    <div class="container">
+        <h1>Alterar Senha</h1>
+        <form id="changePasswordForm">
+            <input type="password" id="newPassword" placeholder="Nova Senha" required>
+            <input type="password" id="confirmPassword" placeholder="Confirmar Senha" required>
+            <button type="submit">Alterar Senha</button>
+        </form>
+        <div id="message" class="error"></div>
+    </div>
+    <script src="../scripts/changepw.js"></script>
+</body>
+
+</html>
