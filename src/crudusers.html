@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRUD de Usuários</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f0f0;
+            padding: 20px;
+        }
+        table {
+            width: 80%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        .form-group button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .form-group button:hover {
+            background-color: #0056b3;
+        }
+        .error {
+            color: red;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Gerenciamento de Usuários</h1>
+    <div id="error" class="error"></div>
+    <table>
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Nível</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody id="user-table-body">
+            <!-- Usuários serão listados aqui -->
+        </tbody>
+    </table>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                document.getElementById('error').textContent = 'Acesso negado. Faça login como um usuário de nível 3.';
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3000/users', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                if (!response.ok) {
+                    throw new Error('Acesso negado');
+                }
+                const users = await response.json();
+                const userTableBody = document.getElementById('user-table-body');
+                users.forEach(user => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${user.username}</td>
+                        <td>
+                            <select data-user-id="${user._id}">
+                                <option value="1" ${user.level === 1 ? 'selected' : ''}>1</option>
+                                <option value="2" ${user.level === 2 ? 'selected' : ''}>2</option>
+                                <option value="3" ${user.level === 3 ? 'selected' : ''}>3</option>
+                            </select>
+                        </td>
+                        <td>
+                            <button onclick="updateUserLevel('${user._id}')">Atualizar Nível</button>
+                        </td>
+                    `;
+                    userTableBody.appendChild(row);
+                });
+            } catch (error) {
+                document.getElementById('error').textContent = error.message;
+            }
+        });
+
+        async function updateUserLevel(userId) {
+            const token = localStorage.getItem('token');
+            const selectElement = document.querySelector(`select[data-user-id="${userId}"]`);
+            const newLevel = selectElement.value;
+
+            try {
+                const response = await fetch(`http://localhost:3000/users/${userId}/level`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ level: newLevel })
+                });
+                if (!response.ok) {
+                    throw new Error('Erro ao atualizar nível do usuário');
+                }
+                alert('Nível do usuário atualizado com sucesso');
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -52,9 +52,11 @@ async function getNextSequenceValue(sequenceName) {
     return sequenceDocument.seq;
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Model de usuário
 const userSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true },
     password: { type: String, required: true },
+    level: { type: Number, default: 1, min: 1, max: 3 },
     createdAt: { type: Date, default: Date.now }
 });
 
@@ -90,29 +92,78 @@ server.post('/login', async (req, res) => {
         if (!isPasswordValid) {
             return res.status(401).json({ error: 'Senha inválida' });
         }
-        const token = jwt.sign({ userId: user._id }, jwtSecret, { expiresIn: '1h' });
+        const token = jwt.sign({ userId: user._id, level: user.level }, jwtSecret, { expiresIn: '1h' });
         res.json({ token });
     } catch (err) {
         res.status(400).json({ error: 'Erro ao fazer login' });
     }
 });
 
+// Middleware de autenticação
 const authenticate = (req, res, next) => {
-    const token = req.header('Authorization').replace('Bearer ', '');
+    const token = req.headers.authorization?.split(' ')[1];
     if (!token) {
-        return res.status(401).json({ error: 'Acesso negado' });
+        return res.status(401).json({ error: 'Token não fornecido' });
     }
     try {
         const decoded = jwt.verify(token, jwtSecret);
-        req.user = decoded;
+        req.userId = decoded.userId;
+        req.userLevel = decoded.level;
         next();
     } catch (err) {
         res.status(401).json({ error: 'Token inválido' });
     }
 };
 
+// Middleware para verificar nível de acesso
+const authorizeLevel3 = (req, res, next) => {
+    if (req.userLevel !== 3) {
+        return res.status(403).json({ error: 'Acesso negado' });
+    }
+    next();
+};
+
 server.get('/protected', authenticate, (req, res) => {
     res.json({ message: 'Acesso permitido' });
+});
+
+// Endpoint para listar todos os usuários registrados
+server.get('/users', authenticate, async (req, res) => {
+    try {
+        const users = await User.find({}, 'username level createdAt');
+        res.json(users);
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao buscar usuários' });
+    }
+});
+
+// Endpoint para editar a senha do usuário logado
+server.put('/users/password', authenticate, async (req, res) => {
+    try {
+        const { newPassword } = req.body;
+        if (!newPassword) {
+            return res.status(400).json({ error: 'Nova senha é necessária' });
+        }
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        await User.findByIdAndUpdate(req.userId, { password: hashedPassword });
+        res.json({ message: 'Senha atualizada com sucesso' });
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao atualizar senha' });
+    }
+});
+
+// Endpoint para alterar o nível de outros usuários (apenas para usuários de nível 3)
+server.put('/users/:id/level', authenticate, authorizeLevel3, async (req, res) => {
+    try {
+        const { level } = req.body;
+        if (level < 1 || level > 3) {
+            return res.status(400).json({ error: 'Nível inválido' });
+        }
+        await User.findByIdAndUpdate(req.params.id, { level });
+        res.json({ message: 'Nível do usuário atualizado com sucesso' });
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao atualizar nível do usuário' });
+    }
 });
 
 // Servir a página de login
@@ -123,6 +174,11 @@ server.get('/login', (req, res) => {
 // Servir a página de CRUD de tarefas
 server.get('/crudtarefas.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'crudtarefas.html'));
+});
+
+// Servir a página de CRUD de usuários (apenas para usuários de nível 3)
+server.get('/crudusers.html', authenticate, authorizeLevel3, (req, res) => {
+    res.sendFile(path.join(__dirname, 'crudusers.html'));
 });
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Retorna uma tarefa
