@@ -12,7 +12,7 @@ server.use(cors());
 
 const jwtSecret = process.env.JWT_SECRET || 'your_jwt_secret';
 
-// Conexão com o banco de dados
+/*// Conexão com o banco de dados
 const mongoURL = process.env.MONGO_URL || 'mongodb://127.0.0.1:27017/tarefas?directConnection=true';
 
 mongoose.connect(mongoURL, {
@@ -22,7 +22,7 @@ mongoose.connect(mongoURL, {
   console.log('Connected to MongoDB');
 }).catch((err) => {
   console.error('Error connecting to MongoDB', err);
-});
+}); 
 // Model de tarefas
 const tarefaSchema = new mongoose.Schema({
     cod: {type: Number, unique:true},
@@ -34,6 +34,7 @@ const tarefaSchema = new mongoose.Schema({
 
 const Tarefa = mongoose.model('Tarefa', tarefaSchema);
 
+
 // Model de contadores
 const counterSchema = new mongoose.Schema({
     _id: String,
@@ -41,6 +42,8 @@ const counterSchema = new mongoose.Schema({
 });
 
 const Counter = mongoose.model('Counter', counterSchema);
+
+*/
 
 // Função para obter o próximo valor da sequência
 async function getNextSequenceValue(sequenceName) {
@@ -52,8 +55,8 @@ async function getNextSequenceValue(sequenceName) {
     return sequenceDocument.seq;
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Model de usuário
-const userSchema = new mongoose.Schema({
+// Model de usuário 
+/*const userSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     level: { type: Number, default: 1, min: 1, max: 3 },
@@ -61,7 +64,7 @@ const userSchema = new mongoose.Schema({
 });
 
 const User = mongoose.model('User', userSchema);
-
+*/
 server.post('/register', async (req, res) => {
     try {
         

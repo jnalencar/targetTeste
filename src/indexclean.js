@@ -1,20 +1,38 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const mongoose = require('./infrastructure/database/mongoose');
-const tarefaRoutes = require('./interfaces/routes/tarefaRoutes');
+const path = require('path');
+const connectDB = require('./infrastructure/database/mongoose');
+const userRoutes = require('./interface/routes/userRoutes');
+const tarefaRoutes = require('./interface/routes/tarefaRoutes');
+const authenticate = require('./interface/middlewares/authenticate');
+const authorizeLevel3 = require('./interface/middlewares/authorizeLevel3');
 
 const server = express();
 server.use(express.json());
 server.use(cors());
 
-// Conectar ao banco de dados
-const connect = require('./infrastructure/database/mongoose');
+connectDB();
 
-connect();
+server.use('', userRoutes);
+server.use('', tarefaRoutes);
 
-// Configurar rotas
-server.use('/tarefas', tarefaRoutes);
+// Servir a página de login
+server.get('/login', (req, res) => {
+    res.sendFile(path.join(__dirname, 'login.html'));
+});
 
-server.listen(3000, () => {
-  console.log('Server is running on port 3000');
+// Servir a página de CRUD de tarefas
+server.get('/crudtarefas.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'crudtarefas.html'));
+});
+
+// Servir a página de CRUD de usuários (apenas para usuários de nível 3)
+server.get('/crudusers.html', authenticate, authorizeLevel3, (req, res) => {
+    res.sendFile(path.join(__dirname, 'crudusers.html'));
+});
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+    console.log(`Servidor rodando na porta ${PORT}`);
 });
