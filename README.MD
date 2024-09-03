@@ -1,13 +1,13 @@
 Requisitos
 =============
-Docker (caso opte) - https://www.docker.com/products/docker-desktop/
+Docker (caso opte) - https://www.docker.com/products/docker-desktop/<br><br>
 
-Node (caso opte precisará utilizar npm install para as seguintes bibliotecas) - https://nodejs.org/en/download/
-Express
-dotenv
-bcrypt
-jsonwebtoken
-mongoose
+Node (caso opte precisará utilizar npm install para as seguintes bibliotecas) - https://nodejs.org/en/download/<br>
+Express<br>
+dotenv<br>
+bcrypt<br>
+jsonwebtoken<br>
+mongoose<br>
 
 MongoDB, versao mais recente - https://www.mongodb.com/try/download/community
 
