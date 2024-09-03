@@ -11,7 +11,8 @@ services:
 
   backend:
     build:
-      context: .
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: backend
     ports:
       - "3000:3000"
@@ -21,7 +22,20 @@ services:
       - backend
     environment:
       MONGO_URL: mongodb://mongo:27017/tarefas?directConnection=true
+      JWT_SECRET: secret
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "8080:8080"
+    networks:
+      - frontend
 
 networks:
   backend:
+    driver: bridge
+  frontend:
     driver: bridge
