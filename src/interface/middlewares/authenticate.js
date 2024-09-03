@@ -8,11 +8,9 @@ const authenticate = (req, res, next) => {
     }
 
     const token = authHeader.split(' ')[1];
-    console.log('Token recebido:', token); // Adiciona log para depuração
 
     try {
         const decoded = jwt.verify(token, jwtSecret);
-        console.log('Token decodificado:', decoded); // Adiciona log para depuração
         req.userId = decoded.userId;
         req.userLevel = decoded.level;
         next();
