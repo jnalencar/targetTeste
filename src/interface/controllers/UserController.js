@@ -1,4 +1,6 @@
 const UserService = require('../../application/services/UserService');
+const jwt = require('jsonwebtoken');
+const jwtSecret = process.env.JWT_SECRET;
 
 class UserController {
     constructor() {
@@ -9,7 +11,8 @@ class UserController {
         const { username, password } = req.body;
         try {
             const newUser = await this.userService.registerUser(username, password);
-            res.status(201).json({ message: 'Usuário registrado com sucesso', user: newUser });
+            const token = jwt.sign({ userId: newUser._id, level: newUser.level }, jwtSecret, { expiresIn: '1h' });
+            res.status(201).json({ message: 'Usuário registrado com sucesso', user: newUser, token });
         } catch (err) {
             res.status(400).json({ error: 'Erro ao registrar usuário' });
         }

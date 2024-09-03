@@ -37,7 +37,7 @@ async function register() {
     const confirmPassword = document.getElementById('register-confirm-password').value;
 
     if (password !== confirmPassword) {
-        document.getElementById('register-error').textContent = 'As senhas não coincidem';
+        document.getElementById('register-error').textContent = 'As senhas não coincidem.';
         return;
     }
 
@@ -49,14 +49,17 @@ async function register() {
             },
             body: JSON.stringify({ username, password })
         });
-        const data = response.ok ? await response.json() : null;
+
+        const data = await response.json();
         if (response.ok) {
-            document.getElementById('register-error').textContent = 'Usuário registrado com sucesso. Agora você pode fazer login.';
+            localStorage.setItem('token', data.token);
+            window.location.href = 'landing.html';
         } else {
-            document.getElementById('register-error').textContent = data ? data.error : 'Erro ao registrar usuário';
+            document.getElementById('register-error').textContent = data.error;
         }
     } catch (error) {
-        document.getElementById('register-error').textContent = 'Erro ao registrar usuário';
+        document.getElementById('register-error').textContent = 'Erro ao registrar.';
+        console.error('Erro ao registrar:', error);
     }
 }
 

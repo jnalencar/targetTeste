@@ -1,8 +1,18 @@
 const apiUrl = 'http://localhost:3000/tarefa';
 
 async function loadTasks() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        document.getElementById('error').textContent = 'Acesso negado. Faça login para ver suas tarefas.';
+        return;
+    }
+
     try {
-        const response = await fetch(apiUrl);
+        const response = await fetch('http://localhost:3000/tarefa', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
         if (!response.ok) {
             throw new Error(`Erro ao carregar tarefas: ${response.statusText}`);
         }
@@ -30,11 +40,17 @@ async function loadTasks() {
 
 async function toggleTaskStatus(cod, currentStatus) {
     const newStatus = currentStatus === 'pendente' ? 'concluido' : 'pendente';
+    const token = localStorage.getItem('token');
+    if (!token) {
+        alert('Acesso negado. Faça login para alterar o status das tarefas.');
+        return;
+    }
     try {
         const response = await fetch(`${apiUrl}/${cod}/status`, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({ status: newStatus })
         });
@@ -51,4 +67,4 @@ async function toggleTaskStatus(cod, currentStatus) {
     }
 }
 
-loadTasks();
+document.addEventListener('DOMContentLoaded', loadTasks);

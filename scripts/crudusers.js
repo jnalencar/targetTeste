@@ -1,5 +1,7 @@
+let token; // Variável global para armazenar o token
+
 document.addEventListener('DOMContentLoaded', async () => {
-    const token = localStorage.getItem('token');
+    token = localStorage.getItem('token'); // Atribui o token à variável global
     if (!token) {
         document.getElementById('error').textContent = 'Acesso negado. Faça login como um usuário de nível 3.';
         return;
@@ -8,7 +10,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         const response = await fetch('http://localhost:3000/users', {
             headers: {
-                'Authorization': `Bearer ${token}`
+                'Authorization': `Bearer ${token}` // Usa a variável global
             }
         });
         if (!response.ok) {
@@ -27,19 +29,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                         <option value="3" ${user.level === 3 ? 'selected' : ''}>3</option>
                     </select>
                 </td>
-                <td>
-                    <button onclick="updateUserLevel('${user._id}')">Atualizar Nível</button>
-                </td>
-                <td>
-                    <button class="delete-button" onclick="deleteUser('${user._id}')">
+                <td><button onclick="updateUserLevel('${user._id}')">Atualizar</button></td>
+                <td><button class="delete-button" onclick="deleteUser('${user._id}')">
                         <img src="../assets/bin.png" alt="Deletar">
-                    </button>
-                </td>
+                    </button></td>
             `;
             userTableBody.appendChild(row);
         });
     } catch (error) {
-        document.getElementById('error').textContent = error.message;
+        document.getElementById('error').textContent = 'Erro ao carregar usuários.';
+        console.error('Erro ao carregar usuários:', error);
     }
 });
 
@@ -57,17 +56,21 @@ async function updateUserLevel(userId) {
             },
             body: JSON.stringify({ level: newLevel })
         });
+
         if (!response.ok) {
             throw new Error('Erro ao atualizar nível do usuário');
         }
-        alert('Nível do usuário atualizado com sucesso');
+
+        alert('Nível do usuário atualizado com sucesso!');
     } catch (error) {
-        alert(error.message);
+        console.error('Erro ao atualizar nível do usuário:', error);
+        alert('Erro ao atualizar nível do usuário.');
     }
 }
 
 async function deleteUser(userId) {
     const token = localStorage.getItem('token');
+
     try {
         const response = await fetch(`http://localhost:3000/users/${userId}`, {
             method: 'DELETE',
@@ -75,12 +78,15 @@ async function deleteUser(userId) {
                 'Authorization': `Bearer ${token}`
             }
         });
+
         if (!response.ok) {
             throw new Error('Erro ao deletar usuário');
         }
-        alert('Usuário deletado com sucesso');
+
+        alert('Usuário deletado com sucesso!');
         location.reload(); // Recarrega a página para atualizar a lista de usuários
     } catch (error) {
-        document.getElementById('error').textContent = error.message;
+        console.error('Erro ao deletar usuário:', error);
+        alert('Erro ao deletar usuário.');
     }
 }

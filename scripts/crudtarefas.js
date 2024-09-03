@@ -3,9 +3,14 @@ document.getElementById('addTaskForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const titulo = document.getElementById('titulo').value;
     const descricao = document.getElementById('descricao').value;
+    const token = localStorage.getItem('token'); // Supondo que o token esteja armazenado no localStorage
 
     try {
-        const response = await fetch(apiUrl);
+        const response = await fetch(apiUrl, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
         const tasks = await response.json();
         const maxId = tasks.reduce((max, task) => task.id > max ? task.id : max, 0);
         const newId = maxId + 1;
@@ -13,7 +18,8 @@ document.getElementById('addTaskForm').addEventListener('submit', async (e) => {
         const addResponse = await fetch(apiUrl, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` // Inclui o token JWT no cabeçalho Authorization
             },
             body: JSON.stringify({ id: newId, titulo, descricao, status: 'pendente' })
         });
@@ -35,6 +41,8 @@ document.getElementById('updateTaskForm').addEventListener('submit', async (e) =
     const index = document.getElementById('updateIndex').value;
     const titulo = document.getElementById('updateTitulo').value;
     const descricao = document.getElementById('updateDescricao').value;
+    const token = localStorage.getItem('token'); // Supondo que o token esteja armazenado no localStorage
+
     if (!titulo || !descricao || !index) {
         alert('Título, descrição e o ID são obrigatórios.');
         return;
@@ -47,7 +55,8 @@ document.getElementById('updateTaskForm').addEventListener('submit', async (e) =
         const response = await fetch(`${apiUrl}/${index}`, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` // Inclui o token JWT no cabeçalho Authorization
             },
             body: JSON.stringify({ id: index, titulo, descricao, status: 'pendente' })
         });
@@ -67,10 +76,14 @@ document.getElementById('updateTaskForm').addEventListener('submit', async (e) =
 document.getElementById('deleteTaskForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const index = document.getElementById('deleteIndex').value;
+    const token = localStorage.getItem('token'); // Supondo que o token esteja armazenado no localStorage
 
     try {
         const response = await fetch(`${apiUrl}/${index}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}` // Inclui o token JWT no cabeçalho Authorization
+            }
         });
 
         if (response.ok) {
@@ -85,32 +98,19 @@ document.getElementById('deleteTaskForm').addEventListener('submit', async (e) =
     }
 });
 
-async function toggleTaskStatus(cod, currentStatus) {
-    const newStatus = currentStatus === 'pendente' ? 'concluido' : 'pendente';
-    try {
-        const response = await fetch(`${apiUrl}/${cod}/status`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ status: newStatus })
-        });
-
-        if (response.ok) {
-            const updatedTask = await response.json();
-            console.log('Status atualizado com sucesso:', updatedTask);
-            loadTasks();
-        } else {
-            console.error('Erro ao atualizar status:', response.statusText);
-        }
-    } catch (error) {
-        console.error('Erro ao atualizar status:', error);
-    }
-}
-
 async function loadTasks() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        document.getElementById('error').textContent = 'Acesso negado. Faça login para ver suas tarefas.';
+        return;
+    }
+
     try {
-        const response = await fetch(apiUrl);
+        const response = await fetch('http://localhost:3000/tarefa', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
         if (!response.ok) {
             throw new Error(`Erro ao carregar tarefas: ${response.statusText}`);
         }
@@ -133,6 +133,35 @@ async function loadTasks() {
     } catch (error) {
         console.error('Erro ao carregar tarefas:', error);
         alert('Erro ao carregar tarefas.');
+    }
+}
+
+async function toggleTaskStatus(cod, currentStatus) {
+    const newStatus = currentStatus === 'pendente' ? 'concluido' : 'pendente';
+    const token = localStorage.getItem('token');
+    if (!token) {
+        alert('Acesso negado. Faça login para alterar o status das tarefas.');
+        return;
+    }
+    try {
+        const response = await fetch(`${apiUrl}/${cod}/status`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ status: newStatus })
+        });
+
+        if (response.ok) {
+            const updatedTask = await response.json();
+            console.log('Status atualizado com sucesso:', updatedTask);
+            loadTasks();
+        } else {
+            console.error('Erro ao atualizar status:', response.statusText);
+        }
+    } catch (error) {
+        console.error('Erro ao atualizar status:', error);
     }
 }
 

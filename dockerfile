@@ -13,6 +13,10 @@ RUN npm install
 # Instalar bcrypt separadamente para garantir a compatibilidade
 RUN npm install bcrypt
 
+RUN npm install jsonwebtoken
+
+RUN npm install dotenv
+
 # Copiar o restante do código da aplicação
 COPY . .
 
